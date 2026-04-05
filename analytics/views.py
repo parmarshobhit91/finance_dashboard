@@ -3,12 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Sum
 from finance.models import FinancialRecord
-from core.permissions import IsAnalystOrAdmin
+from core.permissions import IsAnalystOrAdmin, IsViewer
+from rest_framework.permissions import IsAuthenticated
 from django.db.models.functions import TruncMonth
 
 # Create your views here.
 class DashboardSummaryView(APIView):
-    permission_classes = [IsAnalystOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         records = FinancialRecord.objects.all()

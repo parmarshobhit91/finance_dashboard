@@ -1,301 +1,879 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance API Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --bg: #f4f6fb;
+            --surface: #ffffff;
+            --surface2: #f0f3f9;
+            --border: #dde3ef;
+            --border2: #c8d2e4;
+            --accent: #1a6ef5;
+            --accent-light: #e8f0fe;
+            --accent2: #0ea87a;
+            --accent2-light: #e6f7f2;
+            --accent3: #f06b1a;
+            --text: #1a2236;
+            --text2: #4a5568;
+            --muted: #8a97b0;
+            --danger: #e03055;
+            --danger-light: #fdeef1;
+            --success: #0ea87a;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Syne', sans-serif;
+            --radius: 10px;
+            --shadow: 0 1px 4px rgba(26,34,54,0.07), 0 4px 16px rgba(26,34,54,0.06);
+            --shadow-sm: 0 1px 3px rgba(26,34,54,0.08);
+            --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: Arial;
-            margin: 0;
-            padding: 0;
+            font-family: var(--mono);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        h1 {
-            text-align: center;
-            margin-top: 20px;
+        /* subtle dot pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, #c8d2e4 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .container {
+        /* ── HEADER ── */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .logo {
+            font-family: var(--sans);
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(26,110,245,0.3);
+        }
+
+        .logo span.accent { color: var(--accent); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent2);
+            box-shadow: 0 0 0 3px rgba(14,168,122,0.2);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .header-badge {
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border: 1px solid var(--border2);
+            border-radius: 99px;
+            color: var(--text2);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: var(--surface2);
+        }
+
+        /* ── LAYOUT ── */
+        .layout {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            grid-template-rows: auto 1fr;
+            min-height: calc(100vh - 61px);
+        }
+
+        /* ── INFO BAR ── */
+        .info-bar {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .creds-panel, .endpoints-panel {
+            padding: 18px 28px;
+        }
+
+        .creds-panel {
+            border-right: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-family: var(--sans);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .creds-grid {
             display: flex;
             flex-wrap: wrap;
-            padding: 20px;
+            gap: 7px;
         }
 
-        .left, .right {
-            padding: 20px;
+        .cred-chip {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 6px 11px;
+            font-size: 0.7rem;
+            box-shadow: var(--shadow-sm);
         }
 
-        .left {
-            flex: 1;
-            min-width: 320px;
+        .cred-chip .label { color: var(--muted); }
+        .cred-chip .val { color: var(--accent); font-weight: 500; }
+        .cred-chip .sep { color: var(--border2); }
+
+        .endpoints-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
-        .right {
-            flex: 1;
-            min-width: 320px;
-            background: #f9f9f9;
-            border-left: 2px solid #ddd;
-        }
-
-        input, textarea, select {
-            width: 90%;
-            padding: 10px;
-            margin: 8px 0;
-        }
-
-        .btn {
-            display: block;
-            width: 260px;
-            margin: 8px 0;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
+        .ep-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.63rem;
+            padding: 4px 9px;
             border-radius: 5px;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            background: var(--surface2);
+        }
+
+        .ep-tag .method { font-weight: 600; font-size: 0.58rem; }
+        .ep-tag.get .method { color: var(--accent2); }
+        .ep-tag.post .method { color: var(--accent); }
+        .ep-tag.patch .method { color: #c87b00; }
+        .ep-tag.delete .method { color: var(--danger); }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(26,34,54,0.04);
+        }
+
+        .section-label {
+            font-family: var(--sans);
+            font-size: 0.63rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.13em;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── FORM ── */
+        .field { margin-bottom: 10px; }
+
+        .field-label {
+            font-size: 0.63rem;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 5px;
+            display: block;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea,
+        select {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            padding: 9px 13px;
+            transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(26,110,245,0.1);
+        }
+
+        select {
             cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a97b0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
         }
 
-        .btn:hover {
-            background-color: #45a049;
+        textarea { resize: vertical; min-height: 88px; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-family: var(--mono);
+            font-size: 0.76rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all var(--transition);
         }
 
-        pre {
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(26,110,245,0.25);
+        }
+
+        .btn-primary:hover {
+            background: #0f5de0;
+            box-shadow: 0 4px 16px rgba(26,110,245,0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: var(--surface2);
+            color: var(--text2);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: var(--danger-light);
+            color: var(--danger);
+            border: 1px solid rgba(224,48,85,0.2);
+        }
+
+        .btn-danger:hover {
+            background: rgba(224,48,85,0.12);
+            border-color: var(--danger);
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* ── QUICK BTNS ── */
+        .quick-btns { display: flex; flex-direction: column; gap: 5px; }
+
+        .quick-btn {
+            width: 100%;
+            padding: 10px 13px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text2);
+            font-family: var(--mono);
+            font-size: 0.73rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            transition: all var(--transition);
+            text-align: left;
+        }
+
+        .quick-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateX(3px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .quick-btn .badge {
+            margin-left: auto;
+            font-size: 0.54rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--accent2-light);
+            color: var(--accent2);
+            letter-spacing: 0.06em;
+            font-weight: 600;
+        }
+
+        /* ── TOKEN FIELD ── */
+        .token-field-wrap { position: relative; }
+        .token-field-wrap input { padding-right: 72px; font-size: 0.68rem; }
+
+        .token-copy-inline {
+            position: absolute;
+            right: 6px; top: 50%;
+            transform: translateY(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            padding: 3px 8px;
+            color: var(--text2);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-weight: 500;
+        }
+
+        .token-copy-inline:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* ── RESPONSE PANEL ── */
+        .response-panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .response-title {
+            font-family: var(--sans);
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-pill {
+            display: none;
+            font-size: 0.62rem;
+            padding: 3px 9px;
+            border-radius: 99px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .status-pill.show { display: inline-flex; align-items: center; gap: 4px; }
+        .status-pill.ok { background: var(--accent2-light); color: var(--accent2); border: 1px solid rgba(14,168,122,0.25); }
+        .status-pill.err { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(224,48,85,0.25); }
+
+        .response-actions { display: flex; gap: 7px; }
+
+        .icon-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text2);
+            cursor: pointer;
+            padding: 6px 11px;
+            font-size: 0.72rem;
+            font-family: var(--mono);
+            transition: all var(--transition);
+        }
+
+        .icon-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .response-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        pre#output {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            line-height: 1.85;
+            color: var(--text);
             white-space: pre-wrap;
-            word-wrap: break-word;
+            word-break: break-word;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
         }
 
-        hr {
-            margin: 20px 0;
+        .placeholder-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 240px;
+            color: var(--muted);
+            gap: 14px;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
+        .placeholder-state .ph-icon {
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: var(--shadow-sm);
+        }
 
-            .right {
-                border-left: none;
-                border-top: 2px solid #ddd;
+        .placeholder-state p {
+            font-size: 0.73rem;
+            text-align: center;
+            max-width: 200px;
+            line-height: 1.7;
+            color: var(--muted);
+        }
+
+        /* ── SYNTAX HIGHLIGHT ── */
+        .json-key  { color: #1a6ef5; }
+        .json-str  { color: #0ea87a; }
+        .json-num  { color: #c87b00; }
+        .json-bool { color: #9333ea; }
+        .json-null { color: var(--muted); }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 18px;
+            font-size: 0.73rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
+            max-width: 300px;
+            box-shadow: var(--shadow);
+            color: var(--text2);
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 3px solid var(--accent2); }
+        .toast.error   { border-left: 3px solid var(--danger); }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
             }
+            .info-bar {
+                grid-template-columns: 1fr;
+            }
+            .creds-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                box-shadow: none;
+            }
+            .response-panel { min-height: 420px; }
+        }
+
+        @media (max-width: 600px) {
+            header { padding: 13px 18px; }
+            .creds-panel, .endpoints-panel { padding: 14px 18px; }
+            .sidebar { padding: 16px; }
+            .response-header { padding: 11px 16px; }
+            .response-body { padding: 14px; }
+            .creds-grid { flex-direction: column; }
+            .btn-grid { grid-template-columns: 1fr; }
+            .logo-icon { display: none; }
         }
     </style>
 </head>
-
 <body>
 
-<h1>🚀 Finance Dashboard API</h1>
+<header>
+    <div class="logo">
+        <div class="logo-icon">📊</div>
+        FinanceAPI<span class="accent">.</span>dashboard
+    </div>
+    <div class="header-right">
+        <div class="live-dot"></div>
+        <span class="header-badge">REST · v1.0</span>
+    </div>
+</header>
 
-<div class="container">
+<div class="layout">
 
-    <!-- LEFT PANEL -->
-    <div class="left">
+    <!-- INFO BAR -->
+    <div class="info-bar">
 
-        <h3>🔐 Generate Token</h3>
+        <div class="creds-panel">
+            <div class="panel-title">Default Credentials</div>
+            <div class="creds-grid">
+                <div class="cred-chip">
+                    <span class="label">user</span>
+                    <span class="val">admin1</span>
+                    <span class="sep">·</span>
+                    <span class="label">pass</span>
+                    <span class="val">hello@123</span>
+                </div>
+                <div class="cred-chip">
+                    <span class="label">user</span>
+                    <span class="val">analyst</span>
+                    <span class="sep">·</span>
+                    <span class="label">pass</span>
+                    <span class="val">hello@456</span>
+                </div>
+                <div class="cred-chip">
+                    <span class="label">user</span>
+                    <span class="val">viewer</span>
+                    <span class="sep">·</span>
+                    <span class="label">pass</span>
+                    <span class="val">hello@789</span>
+                </div>
+                <div class="cred-chip">
+                    <span class="label">django</span>
+                    <span class="val">admin</span>
+                    <span class="sep">·</span>
+                    <span class="val">admin</span>
+                </div>
+            </div>
+        </div>
 
-        <input type="text" id="username" placeholder="Username (admin / analyst / viewer)">
-        <input type="password" id="password" placeholder="Password">
-
-        <button class="btn" onclick="getToken()">🔑 Get Token</button>
-
-        <hr>
-
-        <h3>📌 JWT Token</h3>
-
-        <input type="text" id="tokenInput" placeholder="Token will appear here">
-
-        <button class="btn" onclick="saveToken()">💾 Save Token</button>
-        <button class="btn" onclick="copyToken()">📋 Copy Token</button>
-
-        <hr>
-
-        <h3>📡 Quick APIs (GET)</h3>
-
-        <button class="btn" onclick="callAPI('/api/users/')">👤 Users</button>
-        <button class="btn" onclick="callAPI('/api/records/')">💰 Records</button>
-        <button class="btn" onclick="callAPI('/api/dashboard/')">📊 Dashboard</button>
-        <button class="btn" onclick="callAPI('/api/category-summary/')">📂 Category Summary</button>
-        <button class="btn" onclick="callAPI('/api/monthly-trends/')">📈 Monthly Trends</button>
-
-        <hr>
-
-        <h3>⚙️ Custom API Request</h3>
-
-        <input type="text" id="customEndpoint" placeholder="/api/records/">
-
-        <select id="method">
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="PATCH">PATCH</option>
-            <option value="DELETE">DELETE</option>
-        </select>
-
-        <textarea id="requestBody" placeholder='JSON Body (for POST/PATCH)'></textarea>
-
-        <button class="btn" onclick="sendCustomRequest()">🚀 Send Request</button>
+        <div class="endpoints-panel">
+            <div class="panel-title">API Endpoints</div>
+            <div class="endpoints-grid">
+                <span class="ep-tag get"><span class="method">GET</span> https://shobhit.pythonanywhere.com/api/users/</span>
+                <span class="ep-tag post"><span class="method">POST</span> /api/users/</span>
+                <span class="ep-tag get"><span class="method">GET</span> /api/records/</span>
+                <span class="ep-tag post"><span class="method">POST</span> /api/records/</span>
+                <span class="ep-tag patch"><span class="method">PATCH</span> /api/records/&lt;id&gt;/</span>
+                <span class="ep-tag delete"><span class="method">DEL</span> /api/records/&lt;id&gt;/</span>
+                <span class="ep-tag get"><span class="method">GET</span> /api/dashboard/</span>
+                <span class="ep-tag get"><span class="method">GET</span> /api/category-summary/</span>
+                <span class="ep-tag get"><span class="method">GET</span> /api/monthly-trends/</span>
+            </div>
+        </div>
 
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="right">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-        <h3>📋 API Response</h3>
+        <!-- AUTH -->
+        <div>
+            <div class="section-label">Authentication</div>
+            <div class="field">
+                <label class="field-label">Username</label>
+                <input type="text" id="username" placeholder="e.g. admin1">
+            </div>
+            <div class="field">
+                <label class="field-label">Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="getToken()">🔑 Generate Token</button>
 
-        <pre id="output">Response will appear here...</pre>
+            <div style="margin-top:14px;">
+                <label class="field-label">JWT Token</label>
+                <div class="token-field-wrap">
+                    <input type="text" id="tokenInput" placeholder="Token will appear here…" readonly>
+                    <button class="token-copy-inline" onclick="copyToken()">COPY</button>
+                </div>
+            </div>
+            <div class="btn-grid" style="margin-top:8px;">
+                <button class="btn btn-ghost" onclick="saveToken()">💾 Save</button>
+                <button class="btn btn-danger" onclick="clearToken()">✕ Clear</button>
+            </div>
+        </div>
+
+        <!-- QUICK GET -->
+        <div>
+            <div class="section-label">Quick GET</div>
+            <div class="quick-btns">
+                <button class="quick-btn" onclick="callAPI('/api/users/')">👤 Users <span class="badge">GET</span></button>
+                <button class="quick-btn" onclick="callAPI('/api/records/')">💰 Records <span class="badge">GET</span></button>
+                <button class="quick-btn" onclick="callAPI('/api/dashboard/')">📊 Dashboard <span class="badge">GET</span></button>
+                <button class="quick-btn" onclick="callAPI('/api/category-summary/')">📂 Category Summary <span class="badge">GET</span></button>
+                <button class="quick-btn" onclick="callAPI('/api/monthly-trends/')">📈 Monthly Trends <span class="badge">GET</span></button>
+            </div>
+        </div>
+
+        <!-- CUSTOM REQUEST -->
+        <div>
+            <div class="section-label">Custom Request</div>
+            <div class="field">
+                <label class="field-label">Endpoint</label>
+                <input type="text" id="customEndpoint" placeholder="/api/records/">
+            </div>
+            <div class="field">
+                <label class="field-label">Method</label>
+                <select id="method">
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="field-label">Body (JSON)</label>
+                <textarea id="requestBody" placeholder='{"key": "value"}'></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="sendCustomRequest()">🚀 Send Request</button>
+        </div>
+
+    </aside>
+
+    <!-- RESPONSE -->
+    <div class="response-panel">
+
+        <div class="response-header">
+            <div class="response-title">
+                Response
+                <span class="status-pill" id="statusPill"></span>
+            </div>
+            <div class="response-actions">
+                <button class="icon-btn" onclick="copyResponse()">📋 Copy</button>
+                <button class="icon-btn" onclick="clearOutput()">✕ Clear</button>
+            </div>
+        </div>
+
+        <div class="response-body">
+            <div id="placeholderState" class="placeholder-state">
+                <div class="ph-icon">📡</div>
+                <p>Send a request to see the response here</p>
+            </div>
+            <pre id="output" style="display:none;"></pre>
+        </div>
 
     </div>
 
 </div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">Done!</span>
+</div>
+
 <script>
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '❌';
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.className = `toast ${type}`, 2800);
+}
 
-// 🔑 Get Token
 async function getToken() {
-    const username = document.getElementById("username").value;
+    const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
-
-    if (!username || !password) {
-        alert("Enter username and password!");
-        return;
-    }
-
+    if (!username || !password) { showToast("Enter username and password", "error"); return; }
     try {
-        const response = await fetch('/api/token/', {
+        const res = await fetch('/api/token/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-
-        const data = await response.json();
-
+        const data = await res.json();
         if (data.access) {
             document.getElementById("tokenInput").value = data.access;
             localStorage.setItem("jwt_token", data.access);
-            copyText(data.access);
-            alert("✅ Token generated & saved!");
+            showToast("Token generated & saved!");
         } else {
-            showOutput(response.status, data);
+            showOutput(res.status, data);
+            showToast("Auth failed — check credentials", "error");
         }
-
-    } catch (error) {
-        showError(error);
-    }
+    } catch (e) { showToast("Request failed: " + e.message, "error"); }
 }
 
-// 💾 Save Token
 function saveToken() {
     const token = document.getElementById("tokenInput").value;
-
-    if (!token) {
-        alert("Enter token!");
-        return;
-    }
-
+    if (!token) { showToast("No token to save", "error"); return; }
     localStorage.setItem("jwt_token", token);
-    copyText(token);
-    alert("✅ Token saved!");
+    showToast("Token saved!");
 }
 
-// 📋 Copy helper
-function copyText(text) {
-    const tempInput = document.createElement("textarea");
-    tempInput.value = text;
-    document.body.appendChild(tempInput);
-
-    tempInput.select();
-    document.execCommand("copy");
-
-    document.body.removeChild(tempInput);
-}
-
-// 📋 Copy Token
 function copyToken() {
-    const token = localStorage.getItem("jwt_token");
-
-    if (!token) {
-        alert("No token saved!");
-        return;
-    }
-
-    copyText(token);
-    alert("📋 Token copied!");
+    const token = localStorage.getItem("jwt_token") || document.getElementById("tokenInput").value;
+    if (!token) { showToast("No token found", "error"); return; }
+    navigator.clipboard.writeText(token).then(() => showToast("Token copied!"));
 }
 
-// 📡 Quick GET APIs
-async function callAPI(endpoint) {
-    sendRequest(endpoint, "GET");
+function clearToken() {
+    localStorage.removeItem("jwt_token");
+    document.getElementById("tokenInput").value = '';
+    showToast("Token cleared");
 }
 
-// 🚀 MAIN REQUEST HANDLER (ALL METHODS)
+async function callAPI(endpoint) { await sendRequest(endpoint, "GET"); }
+
 async function sendCustomRequest() {
-    const endpoint = document.getElementById("customEndpoint").value;
+    const endpoint = document.getElementById("customEndpoint").value.trim();
     const method = document.getElementById("method").value;
-
-    sendRequest(endpoint, method);
+    if (!endpoint) { showToast("Enter an endpoint", "error"); return; }
+    await sendRequest(endpoint, method);
 }
 
 async function sendRequest(endpoint, method) {
-    const bodyText = document.getElementById("requestBody").value;
+    const bodyText = document.getElementById("requestBody").value.trim();
     const token = localStorage.getItem("jwt_token");
-
-    if (!endpoint) {
-        alert("Enter endpoint!");
-        return;
-    }
-
     let options = {
-        method: method,
+        method,
         headers: {
-            "Authorization": "Bearer " + token,
+            "Authorization": "Bearer " + (token || ""),
             "Content-Type": "application/json"
         }
     };
-
-    // Add body for POST / PUT / PATCH
     if (["POST", "PUT", "PATCH"].includes(method)) {
-        if (!bodyText) {
-            alert("Body required for " + method);
-            return;
-        }
-
-        try {
-            options.body = JSON.stringify(JSON.parse(bodyText));
-        } catch {
-            alert("Invalid JSON!");
-            return;
-        }
+        if (!bodyText) { showToast("Body required for " + method, "error"); return; }
+        try { options.body = JSON.stringify(JSON.parse(bodyText)); }
+        catch { showToast("Invalid JSON body", "error"); return; }
     }
-
     try {
-        const response = await fetch(endpoint, options);
-
-        // Handle 204 (DELETE success)
-        if (response.status === 204) {
-            showOutput(response.status, { message: "✅ Deleted successfully" });
-            return;
-        }
-
-        const data = await response.json();
-        showOutput(response.status, data);
-
-    } catch (error) {
-        showError(error);
-    }
+        const res = await fetch(endpoint, options);
+        if (res.status === 204) { showOutput(res.status, { message: "Deleted successfully" }); return; }
+        const data = await res.json();
+        showOutput(res.status, data);
+    } catch (e) { showOutput(0, { error: e.message }); }
 }
 
-// 🎯 Output formatter
 function showOutput(status, data) {
-    document.getElementById("output").innerText =
-        "Status: " + status + "\n\n" +
-        JSON.stringify(data, null, 2);
+    document.getElementById("placeholderState").style.display = 'none';
+    const out = document.getElementById("output");
+    out.style.display = 'block';
+    out.innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+    const pill = document.getElementById("statusPill");
+    const ok = status >= 200 && status < 300;
+    pill.textContent = status ? `${status} ${ok ? 'OK' : 'Error'}` : 'Error';
+    pill.className = `status-pill show ${ok ? 'ok' : 'err'}`;
 }
 
-// ❌ Error handler
-function showError(error) {
-    document.getElementById("output").innerText =
-        "❌ Error: " + error;
+function syntaxHighlight(json) {
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+        let cls = 'json-num';
+        if (/^"/.test(m)) cls = /:$/.test(m) ? 'json-key' : 'json-str';
+        else if (/true|false/.test(m)) cls = 'json-bool';
+        else if (/null/.test(m)) cls = 'json-null';
+        return `<span class="${cls}">${m}</span>`;
+    });
 }
 
+function clearOutput() {
+    document.getElementById("placeholderState").style.display = 'flex';
+    const out = document.getElementById("output");
+    out.style.display = 'none';
+    out.innerHTML = '';
+    document.getElementById("statusPill").className = 'status-pill';
+}
+
+function copyResponse() {
+    const text = document.getElementById("output").innerText;
+    if (!text) { showToast("Nothing to copy", "error"); return; }
+    navigator.clipboard.writeText(text).then(() => showToast("Response copied!"));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const t = localStorage.getItem("jwt_token");
+    if (t) document.getElementById("tokenInput").value = t;
+});
 </script>
-
 </body>
 </html>

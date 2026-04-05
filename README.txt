@@ -7,7 +7,23 @@ role-based access control, and provides analytical insights.
 
 It demonstrates backend architecture, API design, data modeling, and secure access handling.
 
+I built a lightweight frontend interface to test APIs efficiently. I used
+AI assistance to speed up UI development, while I designed and implemented all
+backend logic, APIs, and system architecture myself.
 ---
+
+## Live Demo
+
+Deployed Project:  
+https://shobhit.pythonanywhere.com/
+
+API Base URL:  
+https://shobhit.pythonanywhere.com/api/
+
+You can directly use the homepage interface to:
+- Generate JWT token
+- Test all APIs (GET, POST, PATCH, DELETE)
+- View responses in real-time
 
 ## Tech Stack
 

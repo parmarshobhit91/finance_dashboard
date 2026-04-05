@@ -12,6 +12,8 @@ class FinancialRecordViewSet(ModelViewSet):
     filterset_fields = ['type', 'category', 'date']
 
     def get_permissions(self):
+        if self.request.user.role == "viewer":
+            return [IsAdmin()]
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAdmin()]
         elif self.action in ['list', 'retrieve']:
