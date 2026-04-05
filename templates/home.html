@@ -125,6 +125,7 @@
         <select id="method">
             <option value="GET">GET</option>
             <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
             <option value="PATCH">PATCH</option>
             <option value="DELETE">DELETE</option>
         </select>
@@ -145,7 +146,6 @@
     </div>
 
 </div>
-
 <script>
 
 // 🔑 Get Token
@@ -171,14 +171,13 @@ async function getToken() {
             document.getElementById("tokenInput").value = data.access;
             localStorage.setItem("jwt_token", data.access);
             copyText(data.access);
-            alert("Token generated & saved!");
+            alert("✅ Token generated & saved!");
         } else {
-            document.getElementById("output").innerText =
-                JSON.stringify(data, null, 2);
+            showOutput(response.status, data);
         }
 
     } catch (error) {
-        document.getElementById("output").innerText = "Error: " + error;
+        showError(error);
     }
 }
 
@@ -193,7 +192,7 @@ function saveToken() {
 
     localStorage.setItem("jwt_token", token);
     copyText(token);
-    alert("Token saved!");
+    alert("✅ Token saved!");
 }
 
 // 📋 Copy helper
@@ -218,41 +217,24 @@ function copyToken() {
     }
 
     copyText(token);
-    alert("Token copied!");
+    alert("📋 Token copied!");
 }
 
 // 📡 Quick GET APIs
 async function callAPI(endpoint) {
-    const token = localStorage.getItem("jwt_token");
-
-    if (!token) {
-        alert("Please generate/save token first!");
-        return;
-    }
-
-    try {
-        const response = await fetch(endpoint, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
-
-        const data = await response.json();
-
-        document.getElementById("output").innerText =
-            JSON.stringify(data, null, 2);
-
-    } catch (error) {
-        document.getElementById("output").innerText = "Error: " + error;
-    }
+    sendRequest(endpoint, "GET");
 }
 
-// ⚙️ Custom API Request
+// 🚀 MAIN REQUEST HANDLER (ALL METHODS)
 async function sendCustomRequest() {
     const endpoint = document.getElementById("customEndpoint").value;
     const method = document.getElementById("method").value;
-    const bodyText = document.getElementById("requestBody").value;
 
+    sendRequest(endpoint, method);
+}
+
+async function sendRequest(endpoint, method) {
+    const bodyText = document.getElementById("requestBody").value;
     const token = localStorage.getItem("jwt_token");
 
     if (!endpoint) {
@@ -268,10 +250,16 @@ async function sendCustomRequest() {
         }
     };
 
-    if (method !== "GET" && bodyText) {
+    // Add body for POST / PUT / PATCH
+    if (["POST", "PUT", "PATCH"].includes(method)) {
+        if (!bodyText) {
+            alert("Body required for " + method);
+            return;
+        }
+
         try {
             options.body = JSON.stringify(JSON.parse(bodyText));
-        } catch (e) {
+        } catch {
             alert("Invalid JSON!");
             return;
         }
@@ -280,14 +268,31 @@ async function sendCustomRequest() {
     try {
         const response = await fetch(endpoint, options);
 
-        const data = await response.json();
+        // Handle 204 (DELETE success)
+        if (response.status === 204) {
+            showOutput(response.status, { message: "✅ Deleted successfully" });
+            return;
+        }
 
-        document.getElementById("output").innerText =
-            JSON.stringify(data, null, 2);
+        const data = await response.json();
+        showOutput(response.status, data);
 
     } catch (error) {
-        document.getElementById("output").innerText = "Error: " + error;
+        showError(error);
     }
+}
+
+// 🎯 Output formatter
+function showOutput(status, data) {
+    document.getElementById("output").innerText =
+        "Status: " + status + "\n\n" +
+        JSON.stringify(data, null, 2);
+}
+
+// ❌ Error handler
+function showError(error) {
+    document.getElementById("output").innerText =
+        "❌ Error: " + error;
 }
 
 </script>
