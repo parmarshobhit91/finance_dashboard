@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance API Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .left, .right {
+            padding: 20px;
+        }
+
+        .left {
+            flex: 1;
+            min-width: 320px;
+        }
+
+        .right {
+            flex: 1;
+            min-width: 320px;
+            background: #f9f9f9;
+            border-left: 2px solid #ddd;
+        }
+
+        input, textarea, select {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        .btn {
+            display: block;
+            width: 260px;
+            margin: 8px 0;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .right {
+                border-left: none;
+                border-top: 2px solid #ddd;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Finance Dashboard API</h1>
+
+<div class="container">
+
+    <!-- LEFT PANEL -->
+    <div class="left">
+
+        <h3>🔐 Generate Token</h3>
+
+        <input type="text" id="username" placeholder="Username (admin / analyst / viewer)">
+        <input type="password" id="password" placeholder="Password">
+
+        <button class="btn" onclick="getToken()">🔑 Get Token</button>
+
+        <hr>
+
+        <h3>📌 JWT Token</h3>
+
+        <input type="text" id="tokenInput" placeholder="Token will appear here">
+
+        <button class="btn" onclick="saveToken()">💾 Save Token</button>
+        <button class="btn" onclick="copyToken()">📋 Copy Token</button>
+
+        <hr>
+
+        <h3>📡 Quick APIs (GET)</h3>
+
+        <button class="btn" onclick="callAPI('/api/users/')">👤 Users</button>
+        <button class="btn" onclick="callAPI('/api/records/')">💰 Records</button>
+        <button class="btn" onclick="callAPI('/api/dashboard/')">📊 Dashboard</button>
+        <button class="btn" onclick="callAPI('/api/category-summary/')">📂 Category Summary</button>
+        <button class="btn" onclick="callAPI('/api/monthly-trends/')">📈 Monthly Trends</button>
+
+        <hr>
+
+        <h3>⚙️ Custom API Request</h3>
+
+        <input type="text" id="customEndpoint" placeholder="/api/records/">
+
+        <select id="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+        </select>
+
+        <textarea id="requestBody" placeholder='JSON Body (for POST/PATCH)'></textarea>
+
+        <button class="btn" onclick="sendCustomRequest()">🚀 Send Request</button>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right">
+
+        <h3>📋 API Response</h3>
+
+        <pre id="output">Response will appear here...</pre>
+
+    </div>
+
+</div>
+
+<script>
+
+// 🔑 Get Token
+async function getToken() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+        alert("Enter username and password!");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/token/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.access) {
+            document.getElementById("tokenInput").value = data.access;
+            localStorage.setItem("jwt_token", data.access);
+            copyText(data.access);
+            alert("Token generated & saved!");
+        } else {
+            document.getElementById("output").innerText =
+                JSON.stringify(data, null, 2);
+        }
+
+    } catch (error) {
+        document.getElementById("output").innerText = "Error: " + error;
+    }
+}
+
+// 💾 Save Token
+function saveToken() {
+    const token = document.getElementById("tokenInput").value;
+
+    if (!token) {
+        alert("Enter token!");
+        return;
+    }
+
+    localStorage.setItem("jwt_token", token);
+    copyText(token);
+    alert("Token saved!");
+}
+
+// 📋 Copy helper
+function copyText(text) {
+    const tempInput = document.createElement("textarea");
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+
+    tempInput.select();
+    document.execCommand("copy");
+
+    document.body.removeChild(tempInput);
+}
+
+// 📋 Copy Token
+function copyToken() {
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+        alert("No token saved!");
+        return;
+    }
+
+    copyText(token);
+    alert("Token copied!");
+}
+
+// 📡 Quick GET APIs
+async function callAPI(endpoint) {
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+        alert("Please generate/save token first!");
+        return;
+    }
+
+    try {
+        const response = await fetch(endpoint, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await response.json();
+
+        document.getElementById("output").innerText =
+            JSON.stringify(data, null, 2);
+
+    } catch (error) {
+        document.getElementById("output").innerText = "Error: " + error;
+    }
+}
+
+// ⚙️ Custom API Request
+async function sendCustomRequest() {
+    const endpoint = document.getElementById("customEndpoint").value;
+    const method = document.getElementById("method").value;
+    const bodyText = document.getElementById("requestBody").value;
+
+    const token = localStorage.getItem("jwt_token");
+
+    if (!endpoint) {
+        alert("Enter endpoint!");
+        return;
+    }
+
+    let options = {
+        method: method,
+        headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+        }
+    };
+
+    if (method !== "GET" && bodyText) {
+        try {
+            options.body = JSON.stringify(JSON.parse(bodyText));
+        } catch (e) {
+            alert("Invalid JSON!");
+            return;
+        }
+    }
+
+    try {
+        const response = await fetch(endpoint, options);
+
+        const data = await response.json();
+
+        document.getElementById("output").innerText =
+            JSON.stringify(data, null, 2);
+
+    } catch (error) {
+        document.getElementById("output").innerText = "Error: " + error;
+    }
+}
+
+</script>
+
+</body>
+</html>

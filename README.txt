@@ -127,7 +127,7 @@ JWT-based authentication using:
 ## Setup Instructions
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/parmarshobhit91/finance_dashboard
 cd finance_dashboard
 
 pip install -r requirements.txt

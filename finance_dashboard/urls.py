@@ -20,6 +20,8 @@ from rest_framework.routers import DefaultRouter
 from users.views import UserViewSet
 from finance.views import FinancialRecordViewSet
 from analytics.views import DashboardSummaryView, CategorySummaryView, MonthlyTrendsView
+# from core.views import api_root
+from core.views import home
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -32,6 +34,9 @@ router.register('records', FinancialRecordViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # path('', api_root),
+    path('', home),
 
     path('api/', include(router.urls)),
 
